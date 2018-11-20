@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -15,6 +16,9 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import org.tensorflow.lite.Interpreter;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,6 +43,7 @@ public class TflitePlugin implements MethodCallHandler {
   private Vector<String> labels = new Vector<>();
   float[][] labelProb;
   private static final int BYTES_PER_CHANNEL = 4;
+  private final String TAG = "TflitePlugin";
 
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "tflite");
@@ -51,12 +56,22 @@ public class TflitePlugin implements MethodCallHandler {
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
-    if (call.method.equals("loadModel")) {
+    if (call.method.equals("loadModelFromAssets")) {
+      try {
+        String res = loadModelFromAssets((HashMap) call.arguments);
+        result.success(res);
+      }
+      catch (Exception e) {
+        result.error("Failed to load model" , e.getMessage(), e);
+      }
+    } if (call.method.equals("loadModel")) {
       try {
         String res = loadModel((HashMap) call.arguments);
         result.success(res);
       }
       catch (Exception e) {
+        e.printStackTrace(System.out);
+        Log.e(TAG, e.toString());
         result.error("Failed to load model" , e.getMessage(), e);
       }
     } if (call.method.equals("runModelOnImage")) {
@@ -72,8 +87,41 @@ public class TflitePlugin implements MethodCallHandler {
     }
   }
 
-
   private String loadModel(HashMap args) throws IOException {
+    String modelPath = args.get("model").toString();
+    // get model from file
+    File modelFile = new File(modelPath);
+    FileInputStream inputStream = new FileInputStream(modelFile);
+    FileDescriptor fd = inputStream.getFD();
+
+    FileChannel fileChannel = inputStream.getChannel();
+    MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, modelFile.length());
+    tfLite = new Interpreter(buffer);
+
+    String labelsPath = args.get("labels").toString();
+
+    loadLabels(labelsPath);
+
+    return "success";
+  }
+
+  private void loadLabels(String path) {
+    BufferedReader br;
+    try {
+      br = new BufferedReader(new FileReader(new File(path)));
+      String line;
+      while ((line = br.readLine()) != null) {
+        labels.add(line);
+      }
+      labelProb = new float[1][labels.size()];
+      br.close();
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read label file" , e);
+    }
+  }
+
+
+  private String loadModelFromAssets(HashMap args) throws IOException {
     String model = args.get("model").toString();
     AssetManager assetManager = mRegistrar.context().getAssets();
     String key = mRegistrar.lookupKeyForAsset(model);
@@ -88,12 +136,12 @@ public class TflitePlugin implements MethodCallHandler {
 
     String labels = args.get("labels").toString();
     key = mRegistrar.lookupKeyForAsset(labels);
-    loadLabels(assetManager, key);
+    loadLabelsFromAssets(assetManager, key);
 
     return "success";
   }
 
-  private void loadLabels(AssetManager assetManager, String path) {
+  private void loadLabelsFromAssets(AssetManager assetManager, String path) {
     BufferedReader br;
     try {
       br = new BufferedReader(new InputStreamReader(assetManager.open(path)));

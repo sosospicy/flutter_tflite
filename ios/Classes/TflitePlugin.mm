@@ -17,6 +17,7 @@
 
 #define LOG(x) std::cerr
 
+NSString* loadModelFromAssets(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args);
 NSString* loadModel(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args);
 NSMutableArray* runModelOnImage(NSDictionary* args);
 void close();
@@ -42,7 +43,10 @@ void close();
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"loadModel" isEqualToString:call.method]) {
+  if ([@"loadModelFromAssets" isEqualToString:call.method]) {
+    NSString* load_result = loadModelFromAssets(_registrar, call.arguments);
+    result(load_result);
+  } else if ([@"loadModel" isEqualToString:call.method]) {
     NSString* load_result = loadModel(_registrar, call.arguments);
     result(load_result);
   } else if ([@"runModelOnImage" isEqualToString:call.method]) {
@@ -76,7 +80,7 @@ static void LoadLabels(NSString* labels_path,
   t.close();
 }
 
-NSString* loadModel(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args) {
+NSString* loadModelFromAssets(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args) {
   NSString* key = [_registrar lookupKeyForAsset:args[@"model"]];
   NSString* graph_path = [[NSBundle mainBundle] pathForResource:key ofType:nil];
   
@@ -90,6 +94,32 @@ NSString* loadModel(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* 
   
   key = [_registrar lookupKeyForAsset:args[@"labels"]];
   NSString* labels_path = [[NSBundle mainBundle] pathForResource:key ofType:nil];
+  LoadLabels(labels_path, &labels);
+  
+  tflite::ops::builtin::BuiltinOpResolver resolver;
+  tflite::InterpreterBuilder(*model, resolver)(&interpreter);
+  if (!interpreter) {
+    return @"Failed to construct interpreter";
+  }
+  if (interpreter->AllocateTensors() != kTfLiteOk) {
+    return @"Failed to allocate tensors!";
+  }
+  
+  return @"success";
+}
+
+NSString* loadModel(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args) {
+  NSString *graph_path = args[@"model"];
+  
+  model = tflite::FlatBufferModel::BuildFromFile([args[@"model"] UTF8String]);
+  if (!model) {
+    return [NSString stringWithFormat:@"%s %@", "Failed to mmap model", graph_path];
+  }
+  LOG(INFO) << "Loaded model " << graph_path;
+  model->error_reporter();
+  LOG(INFO) << "resolved reporter";
+  
+  NSString* labels_path = args[@"labels"];
   LoadLabels(labels_path, &labels);
   
   tflite::ops::builtin::BuiltinOpResolver resolver;

@@ -8,7 +8,7 @@ PODS:
     - TensorFlowLite
 
 DEPENDENCIES:
-  - Flutter (from `.symlinks/flutter/ios`)
+  - Flutter (from `.symlinks/flutter/ios-release`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - tflite (from `.symlinks/plugins/tflite/ios`)
 
@@ -18,7 +18,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   Flutter:
-    :path: ".symlinks/flutter/ios"
+    :path: ".symlinks/flutter/ios-release"
   image_picker:
     :path: ".symlinks/plugins/image_picker/ios"
   tflite:
@@ -28,7 +28,7 @@ SPEC CHECKSUMS:
   Flutter: 9d0fac939486c9aba2809b7982dfdbb47a7b0296
   image_picker: ee00aab0487cedc80a304085219503cc6d0f2e22
   TensorFlowLite: 6274f29bbf7e234edb3108f0f32728b5a4d53d77
-  tflite: 2e947652986a7380eb526f099ca57a55ced11631
+  tflite: 48c4951e38ea09fe4392adcd6b997f39324dfa55
 
 PODFILE CHECKSUM: 1e5af4103afd21ca5ead147d7b81d06f494f51a2
 

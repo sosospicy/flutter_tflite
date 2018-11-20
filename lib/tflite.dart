@@ -18,6 +18,19 @@ class Tflite {
     );
   }
 
+  static Future<String> loadModelFromAssets({
+    @required String model,
+    @required String labels,
+  }) async {
+    return await _channel.invokeMethod(
+      'loadModelFromAssets',
+      {
+        "model": model,
+        "labels": labels,
+      },
+    );
+  }
+
   static Future<List> runModelOnImage({
     @required String path,
     int inputSize = 224,
