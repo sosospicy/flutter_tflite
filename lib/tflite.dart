@@ -10,7 +10,7 @@ class Tflite {
     @required String labels,
   }) async {
     return await _channel.invokeMethod(
-      'loadModel',
+      'loadModelFromFile',
       {
         "model": model,
         "labels": labels,

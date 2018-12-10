@@ -18,7 +18,7 @@
 #define LOG(x) std::cerr
 
 NSString* loadModelFromAssets(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args);
-NSString* loadModel(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args);
+NSString* loadModelFromFile(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args);
 NSMutableArray* runModelOnImage(NSDictionary* args);
 void close();
 
@@ -46,8 +46,8 @@ void close();
   if ([@"loadModelFromAssets" isEqualToString:call.method]) {
     NSString* load_result = loadModelFromAssets(_registrar, call.arguments);
     result(load_result);
-  } else if ([@"loadModel" isEqualToString:call.method]) {
-    NSString* load_result = loadModel(_registrar, call.arguments);
+  } else if ([@"loadModelFromFile" isEqualToString:call.method]) {
+    NSString* load_result = loadModelFromFile(_registrar, call.arguments);
     result(load_result);
   } else if ([@"runModelOnImage" isEqualToString:call.method]) {
     NSMutableArray* inference_result = runModelOnImage(call.arguments);
@@ -108,7 +108,7 @@ NSString* loadModelFromAssets(NSObject<FlutterPluginRegistrar>* _registrar, NSDi
   return @"success";
 }
 
-NSString* loadModel(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args) {
+NSString* loadModelFromFile(NSObject<FlutterPluginRegistrar>* _registrar, NSDictionary* args) {
   NSString *graph_path = args[@"model"];
   
   model = tflite::FlatBufferModel::BuildFromFile([args[@"model"] UTF8String]);
