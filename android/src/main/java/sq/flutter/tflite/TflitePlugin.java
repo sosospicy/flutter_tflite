@@ -238,7 +238,7 @@ public class TflitePlugin implements MethodCallHandler {
 
   private void close() {
     tfLite.close();
-    labels = null;
+    labels = new Vector<>();
     labelProb = null;
   }
 
