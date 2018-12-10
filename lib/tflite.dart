@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 class Tflite {
   static const MethodChannel _channel = const MethodChannel('tflite');
 
-  static Future<String> loadModel({
+  static Future<String> loadModelFromFile({
     @required String model,
     @required String labels,
   }) async {
