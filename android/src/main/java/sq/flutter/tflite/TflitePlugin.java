@@ -64,9 +64,9 @@ public class TflitePlugin implements MethodCallHandler {
       catch (Exception e) {
         result.error("Failed to load model" , e.getMessage(), e);
       }
-    } if (call.method.equals("loadModel")) {
+    } if (call.method.equals("loadModelFromFile")) {
       try {
-        String res = loadModel((HashMap) call.arguments);
+        String res = loadModelFromFile((HashMap) call.arguments);
         result.success(res);
       }
       catch (Exception e) {
@@ -87,7 +87,7 @@ public class TflitePlugin implements MethodCallHandler {
     }
   }
 
-  private String loadModel(HashMap args) throws IOException {
+  private String loadModelFromFile(HashMap args) throws IOException {
     String modelPath = args.get("model").toString();
     // get model from file
     File modelFile = new File(modelPath);
@@ -100,12 +100,12 @@ public class TflitePlugin implements MethodCallHandler {
 
     String labelsPath = args.get("labels").toString();
 
-    loadLabels(labelsPath);
+    loadLabelsFromFile(labelsPath);
 
     return "success";
   }
 
-  private void loadLabels(String path) {
+  private void loadLabelsFromFile(String path) {
     BufferedReader br;
     try {
       br = new BufferedReader(new FileReader(new File(path)));
